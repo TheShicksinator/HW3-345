@@ -1,6 +1,7 @@
 var request = require("request");
 
 const chalk = require("chalk");
+const { post } = require("request");
 
 var urlRoot = "https://api.github.com";
 // NCSU Enterprise endpoint:
@@ -109,35 +110,61 @@ async function listBranches(owner, repo) {
 
 // 2. Write code to create a new repo
 async function createRepo(owner, repo) {
-    let options = getDefaultOptions("/", "POST");
+    let options = getDefaultOptions(`/repos/${owner}`, "POST");
 
     // Send a http request to url and specify a callback that will be called upon its return.
     return new Promise(function (resolve, reject) {
-        request(options, function (error, response, body) {
-            resolve(response.statusCode);
+        post(options, function (error, response, body) {
+            if (error) {
+                console.log(chalk.red(error));
+                reject(error);
+                return;
+            }
+            console.log(" ");
+            console.log("Posting new repository");
+            var obj = JSON.parse(body);
+            resolve(obj);
         });
     });
 }
 // 3. Write code for creating an issue for an existing repo.
 async function createIssue(owner, repo, issueName, issueBody) {
-    let options = getDefaultOptions("/", "POST");
+    let options = getDefaultOptions(
+        `/repos/${owner}/${repo}/issues/${issueName}`,
+        "POST"
+    );
 
     // Send a http request to url and specify a callback that will be called upon its return.
     return new Promise(function (resolve, reject) {
         request(options, function (error, response, body) {
-            resolve(response.statusCode);
+            if (error) {
+                console.log(chalk.red(error));
+                reject(error);
+                return;
+            }
+            console.log(" ");
+            console.log("Creating a new issue within repository");
+            var obj = JSON.parse(body);
+            resolve(obj);
         });
     });
 }
 
 // 4. Write code for editing a repo to enable wiki support.
 async function enableWikiSupport(owner, repo) {
-    let options = getDefaultOptions("/", "PATCH");
+    let options = getDefaultOptions(`repos/${owner}/repos/${repo}`, "PATCH");
 
     // Send a http request to url and specify a callback that will be called upon its return.
     return new Promise(function (resolve, reject) {
         request(options, function (error, response, body) {
-            resolve(JSON.parse(body));
+            if (error) {
+                console.log(chalk.red(error));
+                reject(error);
+                return;
+            }
+            var obj = JSON.parse(body);
+            body.has_wiki = true;
+            resolve(obj);
         });
     });
 }
